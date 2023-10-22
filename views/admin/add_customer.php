@@ -1,9 +1,7 @@
 <?php
 
-use App\Enums\AccessLevel;
 use App\Model\Authentication;
 use App\Model\Customer;
-use App\Model\User;
 use App\Storage\DB;
 
 session_start();

@@ -16,14 +16,14 @@ class Authentication
     protected User $user;
     protected Storage $storage;
 
-    public function login(string $email, string $password, AccessLevel $accessLevel)//: ?User
+    public function login(string $email, string $password, AccessLevel $accessLevel) //: ?User
     {
         //echo "<pre>";print_r($this->registeredUsers);exit();
         foreach ($this->registeredUsers as $reg) {
             if ($email == $reg['email'] && password_verify($password, $reg['password']) && $accessLevel->value == $reg['access_level']) {
-                if($accessLevel->value==AccessLevel::ADMIN->value){
+                if ($accessLevel->value == AccessLevel::ADMIN->value) {
                     return new Admin($reg['name'], $reg['email'], $reg['password']);
-                }else{
+                } else {
                     return new Customer($reg['name'], $reg['email'], $reg['password']);
                 }
             }

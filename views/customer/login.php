@@ -2,6 +2,7 @@
 
 use App\Enums\AccessLevel;
 use App\Model\Authentication;
+use App\Model\Validation;
 use App\Storage\DB;
 
 session_start();
@@ -16,18 +17,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if (isset($_POST['email']) && isset($_POST['password'])) {
     $email = htmlspecialchars($_POST['email']);
     $password = $_POST['password'];
-    $authentication = new Authentication(new DB());
+    $validation = new Validation();
+    if ($validation->is_valid_email($email) &&  $validation->is_valid_password($password)) {
+      $authentication = new Authentication(new DB());
 
-    $user = $authentication->login($email, $password, AccessLevel::CUSTOMER);
-    if ($user != null) {
-      $_SESSION['user_email'] = $user->getEmail();
-      $_SESSION['user_name'] = $user->getName();
-      $_SESSION['message'] = null;
-      header("Location:dashboard.php");
-      exit;
-    } else {
-      $_SESSION['message'] = "Sorry, wrong credentials";
+      $user = $authentication->login($email, $password, AccessLevel::CUSTOMER);
+      if ($user != null) {
+        $_SESSION['user_email'] = $user->getEmail();
+        $_SESSION['user_name'] = $user->getName();
+        $_SESSION['message'] = null;
+        header("Location:dashboard.php");
+        exit;
+      } else {
+        $_SESSION['message'] = "Sorry, wrong credentials";
+      }
     }
+    
   }
 }
 ?>

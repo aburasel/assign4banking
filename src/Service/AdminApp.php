@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Repository\AdminFileRepository;
 use App\Model\Authentication;
 use App\Model\Admin;
 use App\Storage\FileStorage;
 use App\Enums\AccessLevel;
-use App\Model\User;
+use App\Model\Validation;
 use App\Repository\AdminRepository;
 
 class AdminApp
@@ -56,11 +55,16 @@ class AdminApp
                 case self::LOGIN:
                     $email = trim(readline("Enter email address: "));
                     $password = trim(readline("Enter password: "));
-                    $this->admin = ($this->authentication->login($email, $password, AccessLevel::ADMIN));
-                    if ($this->admin == null) {
-                        echo ("Invalid email or password\n");
+                    $validation = new Validation();
+                    if ($validation->is_valid_email($email) &&  $validation->is_valid_password($password)) {
+                        $this->admin = ($this->authentication->login($email, $password, AccessLevel::ADMIN));
+                        if ($this->admin == null) {
+                            echo ("Invalid email or password\n");
+                        } else {
+                            echo ("Logged in successfully\n");
+                        }
                     } else {
-                        echo ("Logged in successfully\n");
+                        echo ("Invalid email or password\n");
                     }
 
                     $this->run();
@@ -70,15 +74,21 @@ class AdminApp
                     $name = trim(readline("Enter your name: "));
                     $email = trim(readline("Enter email address: "));
                     $password = trim(readline("Enter password: "));
-                    $admin = new Admin($name, $email, password_hash($password, PASSWORD_DEFAULT));
-                    $this->admin = $this->authentication->register($admin);
-                    if ($this->admin == null) {
-                        echo ("Admin already exists\n");
-                        $userAuthenticated = false;
+                    $validation = new Validation();
+                    if ($validation->is_valid_name($name) && $validation->is_valid_email($email) &&  $validation->is_valid_password($password)) {
+                        $admin = new Admin($name, $email, password_hash($password, PASSWORD_DEFAULT));
+                        $this->admin = $this->authentication->register($admin);
+                        if ($this->admin == null) {
+                            echo ("Admin already exists\n");
+                            $userAuthenticated = false;
+                        } else {
+                            echo ("Admin Registered\n");
+                            $userAuthenticated = true;
+                        }
                     } else {
-                        echo ("Admin Registered\n");
-                        $userAuthenticated = true;
+                        echo ("Please enter valid name, email and password\n");
                     }
+
                     $this->run();
                     break;
                 case self::EXIT_APP:
@@ -97,20 +107,20 @@ class AdminApp
                 switch ($choice) {
                     case self::ALL_TRANSACTIONS:
                         printf("---------------------------------\n");
-                        $transactions=$this->adminRepo->viewTransactions();
-                        if($transactions){
+                        $transactions = $this->adminRepo->viewTransactions();
+                        if ($transactions) {
                             foreach ($transactions as $transaction) {
                                 printf("Email: %s, Type: %s, Amount: $ %s\n", $transaction['email'], $transaction['transaction_type'], $transaction['amount'],);
                             }
                         }
-                        
+
                         printf("---------------------------------\n\n");
                         break;
                     case self::SPECIFIC_CUSTOMER_TRANSACTIONS:
                         $email = trim(readline("Enter email address: "));
                         printf("---------------------------------\n");
-                        $transactions=$this->adminRepo->viewTransactions($email);
-                        if($transactions){
+                        $transactions = $this->adminRepo->viewTransactions($email);
+                        if ($transactions) {
                             foreach ($transactions as $transaction) {
                                 printf("Email: %s, Type: %s, Amount: $ %s\n", $transaction['email'], $transaction['transaction_type'], $transaction['amount'],);
                             }
@@ -120,7 +130,7 @@ class AdminApp
                     case self::ALL_CUSTOMERS:
                         printf("---------------------------------\n");
                         $customers = $this->adminRepo->viewCustomers();
-                        if($customers){
+                        if ($customers) {
                             foreach ($customers as $customer) {
                                 printf("Name: %s, Email: %s\n", $customer['name'], $customer['email']);
                             }

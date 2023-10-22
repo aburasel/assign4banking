@@ -3,11 +3,10 @@
 declare(strict_types=1);
 
 namespace App\Repository;
-use App\Model\Admin;
+
 use App\Enums\AccessLevel;
 use App\Model\Transaction;
 use App\Model\User;
-use App\Storage\DB;
 use App\Storage\Storage;
 
 class AdminRepository  implements AdminRepositoryInterface
@@ -25,13 +24,13 @@ class AdminRepository  implements AdminRepositoryInterface
         $this->users = $this->storage->loadAll(User::getModelName());
     }
 
-    public function viewCustomers():?array
+    public function viewCustomers(): ?array
     {
         //echo "<pre>";print_r($this->customers);exit();
-        $customers=array();
+        $customers = array();
         foreach ($this->users as $customer) {
             if ($customer['access_level'] == AccessLevel::CUSTOMER->value) {
-                $customers[]=$customer;
+                $customers[] = $customer;
             }
         }
         return $customers;
@@ -41,14 +40,14 @@ class AdminRepository  implements AdminRepositoryInterface
     {
         // $where=array();
         // if($email){
-             $where=array(User::getModelName().'.email' => $email);
+        $where = array(User::getModelName() . '.email' => $email);
         // }
         return $result = $this->storage->loadJoinWhere(
             User::getModelName(),
             Transaction::getModelName(),
-            $where,//WHERE
+            $where, //WHERE
             //array('email' => $email),
-            array('email' => 'email'),//JOIN BETWEEN
+            array('email' => 'email'), //JOIN BETWEEN
             array(
                 User::getModelName() => 'name',
                 Transaction::getModelName() => 'email,transaction_type,amount,transaction_date'
@@ -66,6 +65,6 @@ class AdminRepository  implements AdminRepositoryInterface
         //     }
         // }
         // return $result;
-        
+
     }
 }

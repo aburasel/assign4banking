@@ -2,13 +2,12 @@
 
 use App\Model\Admin;
 use App\Model\Authentication;
-use App\Model\Customer;
+use App\Model\Validation;
 use App\Storage\DB;
-use App\Storage\FileStorage;
 
 session_start();
-require_once "../vendor/autoload.php";
-$_SESSION['message']=null;
+require_once "../../vendor/autoload.php";
+$_SESSION['message'] = null;
 if (isset($_SESSION['admin_email'])) {
   header("Location:customers.php");
   exit;
@@ -19,18 +18,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'];
     $email = htmlspecialchars($_POST['email']);
     $password = $_POST['password'];
-    $authentication = new Authentication(new DB());
+    $validation = new Validation();
+    if ($validation->is_valid_name($name) && $validation->is_valid_email($email) &&  $validation->is_valid_password($password)) {
+      $authentication = new Authentication(new DB());
 
-    $user = $authentication->register(new Admin($name, $email, password_hash($password, PASSWORD_DEFAULT)));
+      $user = $authentication->register(new Admin($name, $email, password_hash($password, PASSWORD_DEFAULT)));
 
-    if ($user != null) {
-      $_SESSION['admin_email'] = $user->getEmail();
-      $_SESSION['user_name'] = $user->getName();
-      $_SESSION['message'] = null;
-      header("Location:customers.php");
-      exit;
-    } else {
-      $_SESSION['message'] = "User already exists";
+      if ($user != null) {
+        $_SESSION['admin_email'] = $user->getEmail();
+        $_SESSION['user_name'] = $user->getName();
+        $_SESSION['message'] = null;
+        header("Location:customers.php");
+        exit;
+      } else {
+        $_SESSION['message'] = "User already exists";
+      }
     }
   }
 }
@@ -72,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <?php
           if (isset($_SESSION['message'])) {
             echo $_SESSION['message'];
-            $_SESSION['message']=null;
+            $_SESSION['message'] = null;
           }
           ?>
         </div>

@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Storage;
 
-use App\Model\Transaction;
-use App\Model\User;
-
 interface Storage
 {
     public function save(string $model, array $data): bool;    

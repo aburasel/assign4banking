@@ -3,12 +3,6 @@
 declare(strict_types=1);
 
 namespace App\Storage;
-
-use App\Model\Model;
-use App\Model\Transaction;
-use App\Model\User;
-use AppConstants;
-
 class FileStorage implements Storage
 {
 

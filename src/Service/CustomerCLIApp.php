@@ -1,13 +1,14 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
+
 namespace App\Service;
 
-use App\Repository\CustomerAccountManager;
 use App\Model\Authentication;
 use App\Model\Customer;
 use App\Storage\FileStorage;
 use App\Enums\AccessLevel;
-use App\Model\User;
-use App\Repository\CustomerFileRepository;
+use App\Model\Validation;
 use App\Repository\CustomerRepository;
 
 class CustomerCLIApp
@@ -58,11 +59,16 @@ class CustomerCLIApp
                 case self::LOGIN:
                     $email = trim(readline("Enter email address: "));
                     $password = trim(readline("Enter password: "));
-                    $this->customer = $this->authentication->login($email, $password,AccessLevel::CUSTOMER);
-                    if ($this->customer == null) {
-                        echo ("Invalid email or password\n");
+                    $validation = new Validation();
+                    if ($validation->is_valid_email($email) &&  $validation->is_valid_password($password)) {
+                        $this->customer = $this->authentication->login($email, $password, AccessLevel::CUSTOMER);
+                        if ($this->customer == null) {
+                            echo ("Invalid email or password\n");
+                        } else {
+                            echo ("Logged in successfully\n");
+                        }
                     } else {
-                        echo ("Logged in successfully\n");
+                        echo ("Invalid email or password\n");
                     }
 
                     $this->run();
@@ -72,22 +78,28 @@ class CustomerCLIApp
                     $name = trim(readline("Enter your name: "));
                     $email = trim(readline("Enter email address: "));
                     $password = trim(readline("Enter password: "));
-                    $customer = new Customer($name, $email, password_hash($password,PASSWORD_DEFAULT));
-                    $this->customer = $this->authentication->register($customer);
-                    if ($this->customer == null) {
-                        echo ("User already exists\n");
-                        $userAuthenticated = false;
-                    } else {
-                        echo ("User Registered\n");
-                        $userAuthenticated = true;
+                    $validation = new Validation();
+                    if ($validation->is_valid_name($name) && $validation->is_valid_email($email) &&  $validation->is_valid_password($password)) {
+                        $customer = new Customer($name, $email, password_hash($password, PASSWORD_DEFAULT));
+                        $this->customer = $this->authentication->register($customer);
+                        if ($this->customer == null) {
+                            echo ("User already exists\n");
+                            $userAuthenticated = false;
+                        } else {
+                            echo ("User Registered\n");
+                            $userAuthenticated = true;
+                        }
+                    }else{
+                        echo ("Please enter valid name, email and password\n");
                     }
+
                     $this->run();
                     break;
                 case self::EXIT_APP:
                     return;
             }
         } else {
-            $this->customerRepo = new CustomerRepository(new FileStorage(),$this->customer);
+            $this->customerRepo = new CustomerRepository(new FileStorage(), $this->customer);
 
             while (true) {
                 foreach ($this->customerOptions as $option => $label) {
@@ -100,12 +112,12 @@ class CustomerCLIApp
                     case self::ALL_TRANSACTIONS:
                         printf("---------------------------------\n");
                         $result = $this->customerRepo->viewTransactions($this->customer->getEmail());
-                        
-                        if($result){
+
+                        if ($result) {
                             foreach ($result as $transaction) {
                                 //echo "==";print_r($transaction);exit();
                                 if ($transaction['email'] == $this->customer->getEmail()) {
-                                    printf("Name: %s, Email: %s,Type: %s, Amount: $ %s\n", $transaction['name'],$transaction['email'],$transaction['transaction_type'], $transaction['amount']);
+                                    printf("Name: %s, Email: %s,Type: %s, Amount: $ %s\n", $transaction['name'], $transaction['email'], $transaction['transaction_type'], $transaction['amount']);
                                 }
                             }
                         }
@@ -117,20 +129,20 @@ class CustomerCLIApp
                         break;
                     case self::WITHDRAW:
                         $amount = (float)trim(readline("Enter withdraw amount: "));
-                        $cust=new Customer($this->customer->getName(),$this->customer->getEmail(),$this->customer->getPassword());
+                        $cust = new Customer($this->customer->getName(), $this->customer->getEmail(), $this->customer->getPassword());
 
-                        if($cust->getCustomerBalance()<$amount){
+                        if ($cust->getCustomerBalance() < $amount) {
                             echo "Insufficient Account balance\n";
-                        }else{
+                        } else {
                             $this->customerRepo->withdraw($amount);
                         }
-                        
+
                         break;
                     case self::TRANSFER:
                         $recepientEmail = trim(readline("Enter receipient email: "));
                         $amount = (float)trim(readline("Enter transfer amount: "));
                         printf("---------------------------------\n");
-                        $success=$this->customerRepo->transferMoney($recepientEmail,$amount );
+                        $success = $this->customerRepo->transferMoney($recepientEmail, $amount);
                         printf("---------------------------------\n");
                         break;
                     case self::BALANCE:
@@ -144,5 +156,4 @@ class CustomerCLIApp
             }
         }
     }
-
 }

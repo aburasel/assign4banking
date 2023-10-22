@@ -9,7 +9,6 @@ use App\Model\Transaction;
 use App\Model\User;
 use App\Model\Customer;
 use App\Enums\TransactionType;
-use App\Storage\DB;
 
 class CustomerRepository  implements CustomerRepositoryInterface
 {

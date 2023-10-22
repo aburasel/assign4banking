@@ -1,7 +1,6 @@
 <?php
 //require_once "app/autoload.php";
 
-use App\Enums\AccessLevel;
 use App\Service\CustomerCLIApp;
 
 require_once "vendor/autoload.php";

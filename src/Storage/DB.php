@@ -2,9 +2,6 @@
 
 namespace App\Storage;
 
-use App\Model\Customer;
-use App\Model\Transaction;
-use App\Model\User;
 use PDO;
 use PDOException;
 
